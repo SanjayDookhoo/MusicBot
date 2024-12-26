@@ -1612,8 +1612,16 @@ class MusicBot(discord.Client):
                 msg = msg.replace("{p0_url}", "")
             return msg
 
+        # prevents showing what music is playing in 1 server, to all users, or saying "streaming on x servers", or setting status to idle, it just doesnt do anything 
+        disable_activity = True
+        if disable_activity:
+            activity = discord.Activity(
+                type=discord.ActivityType.playing,
+                name="!help",
+            )
+
         # multiple servers are playing or paused.
-        if total > 1:
+        elif total > 1:
             if paused > playing:
                 status = discord.Status.idle
 
