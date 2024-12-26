@@ -5215,6 +5215,11 @@ class MusicBot(discord.Client):
                     delete_after=30,
                 )
         
+        if indexes[0] > indexes[1]:
+            temp_index = indexes[0]
+            indexes[0] = indexes[1]
+            indexes[1] = temp_index
+        
         player.playlist.removerange(indexes[0], indexes[1])
 
         return Response(
