@@ -5177,6 +5177,52 @@ class MusicBot(discord.Client):
             ),
             expire_in=20,
         )
+    
+    async def cmd_removerange(
+        self,
+        player: MusicPlayer,
+        command: str,
+        leftover_args: List[str],
+    ) -> CommandResponse:
+        """
+        Usage:
+            {command_prefix}removerange [Index of song to clear from] [Index of song to clear to]
+            Ex: !removerange 1 3
+
+        Removes songs from the playlist between the given range.
+        """
+
+        indexes = []
+        try:
+            indexes.append(int(command) - 1)
+            indexes.append(int(leftover_args[0]) - 1)
+        except (ValueError, IndexError):
+            # TODO: return command error instead, specific to the exception.
+            return Response(
+                self.str.get(
+                    "cmd-move-indexes_not_intergers", "Song indexes must be integers!"
+                ),
+                delete_after=30,
+            )
+
+        for i in indexes:
+            if i < 0 or i > len(player.playlist.entries) - 1:
+                return Response(
+                    self.str.get(
+                        "cmd-move-invalid-indexes",
+                        "Sent indexes are outside of the playlist scope!",
+                    ),
+                    delete_after=30,
+                )
+        
+        player.playlist.removerange(indexes[0], indexes[1])
+
+        return Response(
+            self.str.get("cmd-removerange-reply", "Cleared `{0}'s` queue between position number {1} and position number {2}").format(
+                player.voice_client.channel.guild, indexes[0] + 1, indexes[1] + 1
+            ),
+            delete_after=20,
+        )
 
     async def cmd_skip(
         self,
