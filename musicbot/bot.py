@@ -4150,6 +4150,20 @@ class MusicBot(discord.Client):
                 )
             except Exception as e:
                 info = None
+
+                # notification that 
+                if "The playlist does not exist" in str(e):
+                    content = self._gen_embed()
+                    content.add_field(name="Error", value="Issue with extracting info from playlist (Possibly Private Playlist).", inline=False)
+                    content.colour = discord.Colour(13369344)
+                    await self.safe_send_message(
+                        channel,
+                        content,
+                        expire_in=(
+                            response.delete_after if self.config.delete_messages else 0
+                        ),
+                    )
+
                 log.exception("Issue with extract_info(): ")
                 raise exceptions.CommandError(str(e)) from e
 
