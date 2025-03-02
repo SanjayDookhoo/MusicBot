@@ -1,0 +1,39 @@
+services:
+  gluetun:
+    image: qmcgaw/gluetun
+    # container_name: gluetun
+    # line above must be uncommented to allow external containers to connect.
+    # See https://github.com/qdm12/gluetun-wiki/blob/main/setup/connect-a-container-to-gluetun.md#external-container-to-gluetun
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    ports:
+      - 8888:8888/tcp # HTTP proxy
+      - 8388:8388/tcp # Shadowsocks
+      - 8388:8388/udp # Shadowsocks
+    # volumes:
+    #   - ./data_gluetun:/gluetun
+    environment:
+      # configuration for sanjay.dookhoo-2.conf
+      - VPN_SERVICE_PROVIDER=custom
+      - VPN_TYPE=wireguard
+      - WIREGUARD_ENDPOINT_IP=
+      - WIREGUARD_ENDPOINT_PORT=51820
+      - WIREGUARD_PUBLIC_KEY=
+      - WIREGUARD_PRIVATE_KEY=
+      - WIREGUARD_PRESHARED_KEY=
+      - WIREGUARD_ADDRESSES=10.0.0.9/24
+      - WIREGUARD_ALLOWED_IPS=0.0.0.0/0
+      - WIREGUARD_MTU=1380
+      - WIREGUARD_DNS=1.1.1.1,1.0.0.1
+    restart: always
+  musicbot:
+    build: .
+    volumes:
+      - ./config:/musicbot/config/
+      - ./audio_cache:/musicbot/audio_cache
+      - ./data:/musicbot/data
+      - ./logs:/musicbot/logs
+    network_mode: "service:gluetun"
+    restart: always
