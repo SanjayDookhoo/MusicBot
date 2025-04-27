@@ -5194,6 +5194,7 @@ class MusicBot(discord.Client):
     
     async def cmd_removerange(
         self,
+        guild: discord.Guild,
         player: MusicPlayer,
         command: str,
         leftover_args: List[str],
@@ -5205,6 +5206,24 @@ class MusicBot(discord.Client):
 
         Removes songs from the playlist between the given range.
         """
+        player = self.get_player_in(guild)
+        if not player:
+            prefix = self.server_data[guild.id].command_prefix
+            raise exceptions.CommandError(
+                self.str.get(
+                    "cmd-removerange-no-voice",
+                    "The bot is not in a voice channel.  "
+                    f"Use {prefix}summon to summon it to your voice channel.",
+                )
+            )
+
+        if not player.current_entry:
+            return Response(
+                self.str.get(
+                    "cmd-removerange-no-songs",
+                    "There are no songs queued. Play something with {}play",
+                ).format(self.server_data[guild.id].command_prefix),
+            )
 
         indexes = []
         try:
@@ -5214,7 +5233,7 @@ class MusicBot(discord.Client):
             # TODO: return command error instead, specific to the exception.
             return Response(
                 self.str.get(
-                    "cmd-move-indexes_not_intergers", "Song indexes must be integers!"
+                    "cmd-removerange-indexes-not-integers", "Song indexes must be integers!"
                 ),
                 delete_after=30,
             )
@@ -5223,12 +5242,13 @@ class MusicBot(discord.Client):
             if i < 0 or i > len(player.playlist.entries) - 1:
                 return Response(
                     self.str.get(
-                        "cmd-move-invalid-indexes",
+                        "cmd-removerange-invalid-indexes",
                         "Sent indexes are outside of the playlist scope!",
                     ),
                     delete_after=30,
                 )
-        
+
+        # if wrong indices are the wrong order, simply reverse order
         if indexes[0] > indexes[1]:
             temp_index = indexes[0]
             indexes[0] = indexes[1]
@@ -5237,7 +5257,7 @@ class MusicBot(discord.Client):
         player.playlist.removerange(indexes[0], indexes[1])
 
         return Response(
-            self.str.get("cmd-removerange-reply", "Cleared `{0}'s` queue between position number {1} and position number {2}").format(
+            self.str.get("cmd-removerange-success", "Successfully cleared `{0}'s` queue between position number {1} and position number {2}!").format(
                 player.voice_client.channel.guild, indexes[0] + 1, indexes[1] + 1
             ),
             delete_after=20,
